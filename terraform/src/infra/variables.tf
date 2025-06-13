@@ -25,6 +25,12 @@ variable "vpc_name" {
   description = "VPC network&subnet name"
 }
 
+variable "backet_name" {
+  type        = string
+  default     = "s3-tf-backend"
+  description = "terraform backend s3-backet name"
+}
+
 variable "resources_vm" {
   type = map(any)
   default = {

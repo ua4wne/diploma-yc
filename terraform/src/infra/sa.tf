@@ -1,7 +1,7 @@
 # Создаем сервисный аккаунт для Terraform
-resource "yandex_iam_service_account" "sa_diploma" {
+resource "yandex_iam_service_account" "sa" {
   folder_id = var.folder_id
-  name      = "sa_diploma"
+  name      = "sa-diploma"
   description = "for netology diploma"
 }
 
@@ -9,5 +9,5 @@ resource "yandex_iam_service_account" "sa_diploma" {
 resource "yandex_resourcemanager_folder_iam_member" "service_editor" {
   folder_id = var.folder_id
   role      = "editor"
-  member    = "serviceAccount:${yandex_iam_service_account.sa_diploma.id}"
+  member    = "serviceAccount:${yandex_iam_service_account.sa.id}"
 }

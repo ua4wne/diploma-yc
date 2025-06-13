@@ -35,10 +35,48 @@
 Предварительная подготовка к установке и запуску Kubernetes кластера.
 
 1. Создайте сервисный аккаунт, который будет в дальнейшем использоваться Terraform для работы с инфраструктурой с необходимыми и достаточными правами. Не стоит использовать права суперпользователя
+
+>Создаем сервисный аккаунт для дальнейшего использования Terraform для работы с инфраструктурой [sa.tf](./terraform/src/infra/sa.tf)
+
+>Создаем S3-бакет, в котором будем хранить стейт файл terraform.tfstate [s3-backend.tf](./terraform/src/infra/s3-backend.tf)
+
+![apply.png](./terraform/src/infra/images/apply.png)
+
+>Добавляем в переменные окружения идентификатор ключа и секретный ключ, созданные на этом шаге. Для этого выполняем следующие команды:
+
+```
+export ACCESS_KEY="<идентификатор_ключа>"
+export SECRET_KEY="<секретный_ключ>"
+```
+
 2. Подготовьте [backend](https://developer.hashicorp.com/terraform/language/backend) для Terraform:  
    а. Рекомендуемый вариант: S3 bucket в созданном ЯО аккаунте(создание бакета через TF)
    б. Альтернативный вариант:  [Terraform Cloud](https://app.terraform.io/)
 3. Создайте конфигурацию Terrafrom, используя созданный бакет ранее как бекенд для хранения стейт файла. Конфигурации Terraform для создания сервисного аккаунта и бакета и основной инфраструктуры следует сохранить в разных папках.
+
+>Добавим в конфигурационный файл [providers.tf](./terraform/src/infra/providers.tf) настройки бэкенда:
+
+```
+backend "s3" {
+   endpoints = {
+      s3 = "https://storage.yandexcloud.net"
+   }
+   bucket = "s3-tf-backend"
+   region = "ru-central1-a"
+   key    = "diploma/terraform.tfstate"
+
+   skip_region_validation      = true
+   skip_credentials_validation = true
+   skip_requesting_account_id  = true # Необходимая опция Terraform для версии 1.6.1 и старше.
+   skip_s3_checksum            = true # Необходимая опция при описании бэкенда для Terraform версии 1.6.3 и старше.
+}
+```
+
+>Применим изменения и посмотрим на результат
+
+![reinit.png](./terraform/src/infra/images/reinit.png)
+![backend.png](./terraform/src/infra/images/backend.png)
+
 4. Создайте VPC с подсетями в разных зонах доступности.
 5. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 6. В случае использования [Terraform Cloud](https://app.terraform.io/) в качестве [backend](https://developer.hashicorp.com/terraform/language/backend) убедитесь, что применение изменений успешно проходит, используя web-интерфейс Terraform cloud.

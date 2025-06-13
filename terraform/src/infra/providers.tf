@@ -10,8 +10,8 @@ terraform {
     endpoints = {
       s3 = "https://storage.yandexcloud.net"
     }
-    bucket = var.backet_name
-    region = var.default_zone
+    bucket = "s3-tf-backend"
+    region = "ru-central1-a"
     key    = "diploma/terraform.tfstate"
 
     skip_region_validation      = true

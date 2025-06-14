@@ -13,16 +13,31 @@ variable "default_zone" {
   default     = "ru-central1-a"
   description = "https://cloud.yandex.ru/docs/overview/concepts/geo-scope"
 }
-variable "default_cidr" {
-  type        = list(string)
-  default     = ["10.0.1.0/24"]
-  description = "https://cloud.yandex.ru/docs/vpc/operations/subnet-create"
-}
 
 variable "vpc_name" {
   type        = string
   default     = "k8s"
   description = "VPC network&subnet name"
+}
+
+variable "ssh_public_key" {
+  type        = string
+  default     = ""
+  description = "SSH public key"
+}
+
+variable "ssh_private_key" {
+  type        = string
+  default     = ""
+  description = "SSH private key"
+}
+
+variable "k8s_vm" {
+  type = map(number)
+  default = {
+    masters = 1
+    workers = 3
+  }
 }
 
 variable "resources_vm" {
@@ -32,34 +47,58 @@ variable "resources_vm" {
     memory        = 4
     core_fraction = 20
     disk_size     = 50
+    disk_type = "network-hdd"
   }
 }
 
-variable "vm_web_preemptible" {
-  type        = bool
-  default     = true
-  description = "preemptible"
+variable "resources_bastion" {
+  type = map(any)
+  default = {
+    cores         = 2
+    memory        = 2
+    core_fraction = 20
+    disk_size     = 10
+    disk_type = "network-hdd"
+  }
 }
 
-variable "vm_web_nat" {
+variable "get_hosts" {
   type        = bool
   default     = true
-  description = "nat enable"
+  description = "allow create hosts.yaml for ansible"
 }
 
-variable "vm_web_user" {
+variable "vm_preemptible" {
+  type        = bool
+  default     = true
+  description = "allow preemptible"
+}
+
+variable "vm_nat" {
+  type        = bool
+  default     = false
+  description = "allow nat"
+}
+
+variable "vm_stop_update" {
+  type        = bool
+  default     = true
+  description = "allow stopping vm for update"
+}
+
+variable "vm_user" {
   type        = string
   default     = "ubuntu"
   description = "default user"
 }
 
-variable "vm_web_platform" {
+variable "vm_platform" {
   type        = string
   default     = "standard-v1"
   description = "platform of compute instanse"
 }
 
-variable "vm_web_family" {
+variable "os_family" {
   type        = string
   default     = "ubuntu-2404-lts-oslogin"
   description = "yandex_compute_image"
@@ -73,7 +112,7 @@ variable "metadata_map" {
   default = {
     metadata = {
       serial-port-enable = true
-      ssh-keys           = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIdGeVIrjr+DNhhCOKPA5Rl3Aui+Kwk8N3GHiUYs2H+F dervish@devops"
+      ssh-keys           = "user:key.pub"
     }
   }
 }

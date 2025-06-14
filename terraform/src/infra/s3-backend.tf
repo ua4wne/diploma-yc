@@ -6,7 +6,7 @@ resource "yandex_iam_service_account_static_access_key" "terraform_service_accou
 # Используем ключ доступа для создания бакета
 resource "yandex_storage_bucket" "tf-bucket" {
   bucket     = var.backet_name
-  max_size   = 1073741824
+  max_size   = 1048576
   access_key = yandex_iam_service_account_static_access_key.terraform_service_account_key.access_key
   secret_key = yandex_iam_service_account_static_access_key.terraform_service_account_key.secret_key
 
@@ -14,8 +14,6 @@ resource "yandex_storage_bucket" "tf-bucket" {
     read = false
     list = false
   }
-
-  force_destroy = true
 
   provisioner "local-exec" {
     command = "echo export ACCESS_KEY=${yandex_iam_service_account_static_access_key.terraform_service_account_key.access_key} > backend.tfvars"

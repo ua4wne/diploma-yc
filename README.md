@@ -72,12 +72,19 @@ backend "s3" {
 }
 ```
 
->Применим изменения и посмотрим на результат
+>Применим изменения и посмотрим на результат:
+
+```
+terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
+```
 
 ![reinit.png](./terraform/src/infra/images/reinit.png)
 ![backend.png](./terraform/src/infra/images/backend.png)
 
 4. Создайте VPC с подсетями в разных зонах доступности.
+
+>Код для создания VPC с подсетями в разных зонах доступности [vpc.tf](./terraform/src/infra/vpc.tf)
+
 5. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 6. В случае использования [Terraform Cloud](https://app.terraform.io/) в качестве [backend](https://developer.hashicorp.com/terraform/language/backend) убедитесь, что применение изменений успешно проходит, используя web-интерфейс Terraform cloud.
 

@@ -54,7 +54,7 @@ export SECRET_KEY="<секретный_ключ>"
    б. Альтернативный вариант:  [Terraform Cloud](https://app.terraform.io/)
 3. Создайте конфигурацию Terrafrom, используя созданный бакет ранее как бекенд для хранения стейт файла. Конфигурации Terraform для создания сервисного аккаунта и бакета и основной инфраструктуры следует сохранить в разных папках.
 
->Добавим в конфигурационный файл [providers.tf](./terraform/src/infra/providers.tf) настройки бэкенда:
+>Добавим в конфигурационный файл [providers.tf](./terraform/src/k8s/providers.tf) настройки бэкенда:
 
 ```
 backend "s3" {
@@ -83,7 +83,7 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 
 4. Создайте VPC с подсетями в разных зонах доступности.
 
->Код для создания VPC с подсетями в разных зонах доступности [vpc.tf](./terraform/src/infra/vpc.tf)
+>Код для создания VPC с подсетями в разных зонах доступности [vpc.tf](./terraform/src/k8s/vpc.tf)
 
 5. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 6. В случае использования [Terraform Cloud](https://app.terraform.io/) в качестве [backend](https://developer.hashicorp.com/terraform/language/backend) убедитесь, что применение изменений успешно проходит, используя web-интерфейс Terraform cloud.

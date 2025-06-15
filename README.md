@@ -107,6 +107,17 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 2. Альтернативный вариант: воспользуйтесь сервисом [Yandex Managed Service for Kubernetes](https://cloud.yandex.ru/services/managed-kubernetes)  
   а. С помощью terraform resource для [kubernetes](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_cluster) создать **региональный** мастер kubernetes с размещением нод в разных 3 подсетях      
   б. С помощью terraform resource для [kubernetes node group](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_node_group)
+
+  >Выбираю вариант самостоятельной установки Kubernetes кластера. Для этого подготавливаю 5 ВМ: бастион-хост для подключения к кластеру, один мастер и три воркер-ноды. Мастер и воркер-ноды размещаю в разных подсетях. [bastion.tf](./terraform/src/k8s/bastion.tf), [master.tf](./terraform/src/k8s/master.tf), [worker.tf](./terraform/src/k8s/worker.tf)
+  
+  >Для последующего развертывания кластера при помощи Kubespray необходимо подготовить инвентори-файл [hosts.yaml](./terraform/ansible/hosts.yaml), который получается в результате выполнения кода из [ansible.tf](./terraform/src/k8s/ansible.tf) и [hosts.tftpl](./terraform/src/k8s/hosts.tftpl)
+
+  ![apply.png](./terraform/src/k8s/images/apply.png)
+  ![cluster.png](./terraform/src/k8s/images/cluster.png)
+
+  >После развёртывания облачной инфраструктуры, приступаю к развёртыванию Kubernetes кластера. Разворачивать буду из репозитория Kubespray со своей локальной машины.
+
+
   
 Ожидаемый результат:
 

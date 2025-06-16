@@ -110,7 +110,38 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 
   >Выбираю вариант самостоятельной установки Kubernetes кластера. Для этого подготавливаю 5 ВМ: бастион-хост для подключения к кластеру, один мастер и три воркер-ноды. Мастер и воркер-ноды размещаю в разных подсетях. [bastion.tf](./terraform/src/k8s/bastion.tf), [master.tf](./terraform/src/k8s/master.tf), [worker.tf](./terraform/src/k8s/worker.tf)
   
-  >Для последующего развертывания кластера при помощи Kubespray необходимо подготовить инвентори-файл [hosts.yaml](./terraform/ansible/hosts.yaml), который получается в результате выполнения кода из [ansible.tf](./terraform/src/k8s/ansible.tf) и [hosts.tftpl](./terraform/src/k8s/hosts.tftpl)
+  >Для последующего развертывания кластера при помощи Kubespray необходимо подготовить инвентори-файл [hosts.yaml](./terraform/ansible/hosts.yaml), который получается в результате выполнения кода из [ansible.tf](./terraform/src/k8s/ansible.tf) и [hosts.tftpl](./terraform/src/k8s/hosts.tftpl) и далее копируется на мастер-ноду при помощи provisioner
+
+  ```
+  # --- Копирование hosts.yaml ---
+  provisioner "file" {
+    source      = "../../ansible/hosts.yaml"
+    destination = "/home/ubuntu/hosts.yaml"
+  }
+  
+  # --- Установка git, python3-pip, python3.12-venv ---
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update",
+      "sudo apt install -y git python3-pip python3.12-venv",
+      "echo 'Git, Python и venv установлены'"
+    ]
+  }
+
+  # --- Клонирование Kubespray и установка зависимостей ---
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/${var.vm_user}",
+      "git clone -b release-2.26 https://github.com/kubernetes-incubator/kubespray.git", 
+      "echo 'Kubespray успешно склонирован'",
+      "cd kubespray/",
+      "python3 -m venv venv",
+      "source venv/bin/activate",
+      "pip install -r requirements.txt",
+      "echo 'Ansible и зависимости Kubespray установлены'"
+    ]
+  }
+  ```
 
   ![apply.png](./terraform/src/k8s/images/apply.png)
   ![cluster.png](./terraform/src/k8s/images/cluster.png)

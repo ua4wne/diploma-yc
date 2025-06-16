@@ -13,6 +13,9 @@ packages:
   - apt-transport-https
   - ca-certificates
   - curl
+  - python3
+  - python3-pip
+  - python3.12-venv
 
 runcmd:
   - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3

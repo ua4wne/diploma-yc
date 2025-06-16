@@ -32,6 +32,6 @@ resource "yandex_compute_instance" "master" {
   metadata = {
     serial-port-enable = var.metadata_map.metadata.serial-port-enable
     ssh-keys           = "${var.vm_user}:${local.ssh-keys}"
-    # user-data          = data.template_file.cloudinit.rendered
   }
+    
 }

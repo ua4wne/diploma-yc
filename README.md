@@ -199,3 +199,9 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 
 1. Git репозиторий с тестовым приложением и Dockerfile.
 2. Регистри с собранным docker image. В качестве регистри может быть DockerHub или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
+
+>Тестовое приложение представляет из себя простой статичный одностраничник. Все запаковано в контейнер docker. Образ пушится в Yandex Container Registry, который в свою очередь создается при помощи Terraform. Сам репозиторий доступен по ссылке [simple-site](https://github.com/ua4wne/simple-site.git)
+
+![apply_yr.png](./terraform/src/k8s/images/apply_yr.png)
+![registry.png](./terraform/src/k8s/images/registry.png)
+![images.png](./terraform/src/k8s/images/images.png)

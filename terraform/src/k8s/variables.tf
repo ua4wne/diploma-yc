@@ -76,7 +76,7 @@ variable "vm_preemptible" {
 
 variable "vm_nat" {
   type        = bool
-  default     = false
+  default     = true
   description = "allow nat"
 }
 

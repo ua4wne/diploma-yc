@@ -26,7 +26,7 @@ resource "yandex_compute_instance" "bastion" {
 
   network_interface {
     subnet_id = yandex_vpc_subnet.public-subnet.id
-    nat       = true
+    nat       = var.vm_nat
   }
 
   metadata = {

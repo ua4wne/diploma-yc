@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diplom-app
+  namespace: diplom-site
+  labels:
+    app: web-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: diplom-simple-site
+          image: cr.yandex/crpbskr2qmiqq3bbf2b2/app/site:latest
+          resources:
+            requests:
+              cpu: "1"
+              memory: "200Mi"
+            limits:
+              cpu: "2"
+              memory: "400Mi"
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: ycr-json-key

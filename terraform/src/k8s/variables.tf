@@ -37,6 +37,8 @@ variable "k8s_vm" {
   default = {
     masters = 1
     workers = 3
+    app_port = 30051
+    grafana_port = 32531
   }
 }
 

@@ -226,7 +226,7 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 ssh -i ~/.ssh/id_ed25519 -J ubuntu@public_IP_bastion ubuntu@local_IP_master
 ```
 
->Далее на мастере выполняю установку helm и kube-prometheus
+>Далее на мастере выполняю установку helm и kube-prometheus:
 
 ```
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -234,7 +234,7 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 ![helm.png](./terraform/src/k8s/images/helm.png)
 
->Добавлю репозиторий prometheus-community, установку произведу с помощью helm
+>Добавлю репозиторий prometheus-community, установку произведу с помощью helm:
 
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -246,7 +246,7 @@ kubectl -n monitoring get pods -o wide
 
 ![grafana.png](./terraform/src/k8s/images/grafana.png)
 
->Для того, чтобы сделать доступ к grafana снаружи изменим тип сервиса на NodePort
+>Для того, чтобы сделать доступ к grafana снаружи изменим тип сервиса на NodePort:
 
 ```
 kubectl patch svc kube-prometheus-stack-grafana   -n monitoring   -p '{"spec": {"type": "NodePort"}}'
@@ -255,7 +255,7 @@ kubectl get svc -n monitoring kube-prometheus-stack-grafana
 
 ![set-node.png](./terraform/src/k8s/images/set-node.png)
 
->Видно что порт 32531 доступен на всех внешних IP нод (включая мастер). Попробуем открыть grafana через браузер. Пароль для УЗ admin получим при помощи команды
+>Видно что порт 32531 доступен на всех внешних IP нод (включая мастер). Попробуем открыть grafana через браузер. Пароль для УЗ admin получим при помощи команды:
 
 ```
 kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
@@ -265,6 +265,52 @@ kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o json
 ![wellcome.png](./terraform/src/k8s/images/wellcome.png)
 ![browse.png](./terraform/src/k8s/images/browse.png)
 
+>Для тестового приложения создаю отдельный Namespace:
+
+```
+kubectl create namespace diplom-site
+```
+
+>Создаю секрет Docker registry в Kubernetes для доступа к реестру образов. Файл key.json был создан ранее при пуше образа тестового приложения при помощи [кода terraform](https://github.com/ua4wne/simple-site/tree/main/terraform).
+
+```
+kubectl create secret docker-registry ycr-json-key \
+  --docker-server=cr.yandex \
+  --docker-username=json_key \
+  --docker-password="$(cat key.json)" \
+  -n diplom-site
+```
+
+>Пишу манифест [Deployment](./terraform/src/k8s/deploy/deploy.yaml) с тестовым приложением и применяю его:
+
+```
+kubectl apply -n diplom-site -f deploy.yaml
+```
+
+![deploy.png](./terraform/src/k8s/images/deployment/deploy.png)
+
+>Для доступа к web-интерфейсу тестового приложения необходим [сервис](./terraform/src/k8s/deploy/service.yaml) с типом NodePort:
+
+```
+kubectl apply -n diplom-site -f service.yaml
+kubectl -n diplom-site get svc -o wide
+```
+
+![node_port.png](./terraform/src/k8s/images/deployment/node_port.png)
+
+>Сервис создан, поды работают. Проверим доступность приложения из-вне.
+
+![site.png](./terraform/src/k8s/images/deployment/site.png)
+
+>Поскольку в [манифесте](./terraform/src/k8s/deploy/deploy.yaml) Deployments я указал три реплики приложения, для обеспечения его отказоустойчивости потребуется балансировщик нагрузки.
+>Кроме этого для доступа к Grafana из-вне тоже потребуется такой же балансировщик. Создадим его при помощи [кода terraform](./terraform/src/k8s/lb.tf)
+
+![lb-apply.png](./terraform/src/k8s/images/deployment/lb-apply.png)
+
+>Забыл вывести данные для подключения через балансировщик, исправлю файл [outputs.tf](./terraform/src/k8s/outputs.tf) для вывода полной информации для подключения.
+
+![output.png](./terraform/src/k8s/images/deployment/output.png)
+![yc-lb.png](./terraform/src/k8s/images/deployment/yc-lb.png)
 
 ### Деплой инфраструктуры в terraform pipeline
 
@@ -274,6 +320,13 @@ kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o json
 1. Git репозиторий с конфигурационными файлами для настройки Kubernetes.
 2. Http доступ на 80 порту к web интерфейсу grafana.
 3. Дашборды в grafana отображающие состояние Kubernetes кластера.
+
+![lb-grafana.png](./terraform/src/k8s/images/deployment/lb-grafana.png)
+
 4. Http доступ на 80 порту к тестовому приложению.
+
+![lb-site.png](./terraform/src/k8s/images/deployment/lb-site.png)
+
 5. Atlantis или terraform cloud или ci/cd-terraform
+
 

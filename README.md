@@ -220,6 +220,52 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 Способ выполнения:
 1. Воспользоваться пакетом [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus), который уже включает в себя [Kubernetes оператор](https://operatorhub.io/) для [grafana](https://grafana.com/), [prometheus](https://prometheus.io/), [alertmanager](https://github.com/prometheus/alertmanager) и [node_exporter](https://github.com/prometheus/node_exporter). Альтернативный вариант - использовать набор helm чартов от [bitnami](https://github.com/bitnami/charts/tree/main/bitnami).
 
+>Установку буду выполнять при помощи пакета kube-prometheus с мастер-ноды. Подключаюсь к ней через сервер-бастион при помощи следующей команды:
+
+```
+ssh -i ~/.ssh/id_ed25519 -J ubuntu@public_IP_bastion ubuntu@local_IP_master
+```
+
+>Далее на мастере выполняю установку helm и kube-prometheus
+
+```
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+![helm.png](./terraform/src/k8s/images/helm.png)
+
+>Добавлю репозиторий prometheus-community, установку произведу с помощью helm
+
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl create namespace monitoring
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack   --namespace monitoring
+kubectl -n monitoring get pods -o wide
+```
+
+![grafana.png](./terraform/src/k8s/images/grafana.png)
+
+>Для того, чтобы сделать доступ к grafana снаружи изменим тип сервиса на NodePort
+
+```
+kubectl patch svc kube-prometheus-stack-grafana   -n monitoring   -p '{"spec": {"type": "NodePort"}}'
+kubectl get svc -n monitoring kube-prometheus-stack-grafana
+```
+
+![set-node.png](./terraform/src/k8s/images/set-node.png)
+
+>Видно что порт 32531 доступен на всех внешних IP нод (включая мастер). Попробуем открыть grafana через браузер. Пароль для УЗ admin получим при помощи команды
+
+```
+kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+```
+
+![login.png](./terraform/src/k8s/images/login.png)
+![wellcome.png](./terraform/src/k8s/images/wellcome.png)
+![browse.png](./terraform/src/k8s/images/browse.png)
+
+
 ### Деплой инфраструктуры в terraform pipeline
 
 1. Если на первом этапе вы не воспользовались [Terraform Cloud](https://app.terraform.io/), то задеплойте и настройте в кластере [atlantis](https://www.runatlantis.io/) для отслеживания изменений инфраструктуры. Альтернативный вариант 3 задания: вместо Terraform Cloud или atlantis настройте на автоматический запуск и применение конфигурации terraform из вашего git-репозитория в выбранной вами CI-CD системе при любом комите в main ветку. Предоставьте скриншоты работы пайплайна из CI/CD системы.

@@ -59,12 +59,13 @@ resource "yandex_compute_instance" "bastion" {
   }
 
   # --- Клонирование Kubespray и установка зависимостей ---
+  #-b release-2.26 https://github.com/kubernetes-incubator/kubespray.git
   provisioner "remote-exec" {
     inline = [
       "cd /home/${var.vm_user}",
-      "git clone -b release-2.26 https://github.com/kubernetes-incubator/kubespray.git", 
+      "git clone https://github.com/kubernetes-sigs/kubespray", 
       "echo 'Kubespray успешно склонирован'",
-      "cd kubespray/",
+      "cd ./kubespray",
       "python3 -m venv venv",
       "source venv/bin/activate",
       "pip install -r requirements.txt",

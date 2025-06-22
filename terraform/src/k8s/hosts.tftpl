@@ -1,8 +1,9 @@
 all:
   hosts:%{ for idx, master in masters }
-    master:
+    master-${idx + 1}:
       ansible_host: ${master.network_interface[0].nat_ip_address}
       ip: ${master.network_interface[0].ip_address}
+      access_ip: ${master.network_interface[0].nat_ip_address}
       kube_apiserver_ip: ${master.network_interface[0].nat_ip_address}%{ endfor }%{ for idx, worker in workers }
     worker-${idx + 1}:
       ansible_host: ${worker.network_interface[0].nat_ip_address}

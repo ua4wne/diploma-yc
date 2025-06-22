@@ -18,13 +18,11 @@ spec:
       containers:
         - name: diplom-simple-site
           image: cr.yandex/crpbskr2qmiqq3bbf2b2/app/site:latest
+          imagePullPolicy: Always
           resources:
             requests:
-              cpu: "1"
-              memory: "200Mi"
-            limits:
-              cpu: "2"
-              memory: "400Mi"
+              cpu: "200m"
+              memory: "256Mi"
           ports:
             - containerPort: 80
       imagePullSecrets:

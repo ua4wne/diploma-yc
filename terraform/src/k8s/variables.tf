@@ -14,17 +14,8 @@ variable "default_zone" {
   description = "https://cloud.yandex.ru/docs/overview/concepts/geo-scope"
 }
 
-variable "s3_access_key" {
-  type = string
-  default = ""
-  description = "access key for state S3 backet"
-}
-
-variable "s3_secret_key" {
-  type = string
-  default = ""
-  description = "secret key for state S3 backet"
-}
+variable "token" {}
+variable "zone" {}
 
 variable "vpc_name" {
   type        = string

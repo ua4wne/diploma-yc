@@ -40,7 +40,7 @@ jobs:
             -backend-config="bucket=s3-tf-backend" \
             -backend-config="key=diploma/terraform.tfstate" \
             -backend-config="region=ru-central1" \
-            -backend-config="endpoint=https://storage.yandexcloud.net"
+            -backend-config="endpoints=https://storage.yandexcloud.net"
 
       - name: Terraform Validate
         run: terraform validate

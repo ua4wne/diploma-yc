@@ -41,9 +41,10 @@ jobs:
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=us-east-1" \
             -backend-config="endpoint=https://storage.yandexcloud.net" \
+            -backend-config="skip_region_validation=true" \
             -backend-config="skip_credentials_validation=true" \
-            -backend-config="skip_metadata_api_check=true" \
-            -backend-config="force_path_style=true"
+            -backend-config="skip_requesting_account_id=true" \
+            -backend-config="skip_s3_checksum=true"
 
       - name: Terraform Validate
         run: terraform validate

@@ -1,4 +1,4 @@
-name: Terraform Apply + Ansible via Bastion
+name: Terraform Apply with Yandex S3 Backend
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Terraform Init
+      - name: Terraform Init (with Yandex S3)
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
@@ -85,18 +85,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-
-      - name: Get Bastion IP
-        id: bastion_ip
-        run: |
-          ip=$(terraform output -raw bastion_ip)
-          echo "ip=$ip" >> $GITHUB_OUTPUT
-
-      - name: Copy hosts.yaml to Bastion
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ steps.bastion_ip.outputs.ip }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: terraform/ansible/hosts.yaml
-          target: /home/ubuntu/

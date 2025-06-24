@@ -13,8 +13,6 @@ terraform {
     bucket                      = "s3-tf-backend"
     region                      = "ru-central1-a"
     key                         = "diploma/terraform.tfstate"
-    access_key                  = var.s3_access_key
-    secret_key                  = var.s3_secret_key
     skip_region_validation      = true
     skip_credentials_validation = true
     skip_requesting_account_id  = true # Необходимая опция Terraform для версии 1.6.1 и старше.

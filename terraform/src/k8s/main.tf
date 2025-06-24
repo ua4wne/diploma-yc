@@ -7,10 +7,6 @@ data "yandex_compute_image" "os" {
   family = var.os_family
 }
 
-# data "template_file" "cloudinit" {
-#  template = file("${path.module}/cloud-init.yml")
-#  vars = {
-#    ssh_public_key = local.ssh-keys
-#    ssh_private_key = local.ssh-private-keys
-#  }
-# }
+data "template_file" "cloudinit_bastion" {
+  template = file("${path.module}/cloudinit/cloudinit_bastion.yaml")
+}

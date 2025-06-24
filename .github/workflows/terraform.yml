@@ -37,10 +37,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
         run: |
           terraform init \
-            -backend-config="bucket=s3-tf-backend" \
-            -backend-config="key=diploma/terraform.tfstate" \
+            -backend-config="bucket=your-bucket-name" \
+            -backend-config="key=terraform.tfstate" \
             -backend-config="region=us-east-1" \
-            -backend-config="endpoint=https://storage.yandexcloud.net"
+            -backend-config="endpoint=https://storage.yandexcloud.net" \
+            -backend-config="skip_credentials_validation=true" \
+            -backend-config="skip_metadata_api_check=true" \
+            -backend-config="force_path_style=true"
 
       - name: Terraform Validate
         run: terraform validate

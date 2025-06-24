@@ -1,0 +1,74 @@
+name: Terraform Safe Apply on Yandex Cloud
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/src/k8s/**'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform/src/k8s
+
+    env:
+      TF_VAR_token: ${{ secrets.YC_TOKEN }}
+      TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+      TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+      TF_VAR_zone: ${{ secrets.YC_ZONE }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -detailed-exitcode || exit_code=$?
+        continue-on-error: true
+
+      - name: Check Plan Result
+        id: check_plan
+        run: |
+          if [ "$exit_code" == "0" ]; then
+            echo "No changes to apply."
+            exit 0
+          elif [ "$exit_code" == "1" ]; then
+            echo "Error during plan"
+            exit 1
+          elif [ "$exit_code" == "2" ]; then
+            echo "Changes detected"
+          else
+            echo "Unknown exit code: $exit_code"
+            exit 1
+          fi
+
+      - name: Check for Deletions
+        run: |
+          terraform show -json tfplan | jq -e '
+            .resource_changes[]? | select(.change.actions | index("delete"))
+          ' > deletions.json
+
+          if [ -s deletions.json ]; then
+            echo "🚨 Destroy actions detected! Refusing to apply."
+            cat deletions.json
+            exit 1
+          else
+            echo "✅ No deletions. Safe to apply."
+          fi
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan

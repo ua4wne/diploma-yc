@@ -52,25 +52,28 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -out=tfplan -detailed-exitcode || echo "exit_code=$?" >> $GITHUB_OUTPUT
-        continue-on-error: true
+          set +e
+          terraform plan -out=tfplan -detailed-exitcode
+          code=$?
+          echo "exit_code=$code" >> $GITHUB_ENV
+          exit 0
 
       - name: Check Plan Exit Code
         run: |
-          if [ "${{ steps.plan.outputs.exit_code }}" == "0" ]; then
-            echo "No changes to apply."
+          if [ "$exit_code" = "0" ]; then
+            echo "✅ No changes to apply."
             exit 0
-          elif [ "${{ steps.plan.outputs.exit_code }}" == "1" ]; then
-            echo "Terraform plan failed."
+          elif [ "$exit_code" = "1" ]; then
+            echo "❌ Terraform plan failed."
             exit 1
-          elif [ "${{ steps.plan.outputs.exit_code }}" == "2" ]; then
-            echo "Changes detected."
+          elif [ "$exit_code" = "2" ]; then
+            echo "✅ Changes detected, continuing..."
           else
-            echo "Unknown exit code."
+            echo "❌ Unknown exit code: $exit_code"
             exit 1
           fi
 
-      - name: Check for Destroy in Plan
+      - name: Check for Destroys
         run: |
           terraform show -json tfplan | jq -e '
             .resource_changes[]? | select(.change.actions | index("delete"))
@@ -81,8 +84,22 @@ jobs:
             cat deletions.json
             exit 1
           else
-            echo "✅ No deletions. Safe to apply."
+            echo "✅ No delete actions detected."
           fi
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+
+      - name: Get Bastion IP
+        id: bastion
+        run: |
+          echo "BASTION_IP=$(terraform output -raw bastion_ip)" >> $GITHUB_ENV
+
+      - name: Copy hosts.yaml to Bastion
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.BASTION_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: terraform/ansible/hosts.yaml
+          target: /home/ubuntu/

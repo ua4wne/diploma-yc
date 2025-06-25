@@ -55,8 +55,9 @@ jobs:
           set +e
           terraform plan -out=tfplan -detailed-exitcode
           code=$?
+          echo "Exit code: $code"
           echo "$code" > exit_code.txt
-          # exit 0
+          exit $code  # <== здесь можно вернуть ошибку, чтобы лог показал её причину
 
       - name: Check Plan Exit Code
         run: |

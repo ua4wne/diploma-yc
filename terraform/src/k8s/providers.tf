@@ -29,7 +29,12 @@
 # }
 
 terraform {
-  required_version = ">= 1.5.0"
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">=1.6.6"
 
   backend "s3" {}
 }

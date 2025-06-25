@@ -55,21 +55,24 @@ jobs:
           set +e
           terraform plan -out=tfplan -detailed-exitcode
           code=$?
-          echo "exit_code=$code" >> $GITHUB_ENV
+          echo "$code" > exit_code.txt
           exit 0
 
       - name: Check Plan Exit Code
         run: |
-          if [ "$exit_code" = "0" ]; then
+          code=$(cat exit_code.txt)
+          echo "Terraform plan exit code: $code"
+          if [ "$code" = "0" ]; then
             echo "✅ No changes to apply."
             exit 0
-          elif [ "$exit_code" = "1" ]; then
+          elif [ "$code" = "1" ]; then
             echo "❌ Terraform plan failed."
             exit 1
-          elif [ "$exit_code" = "2" ]; then
+          elif [ "$code" = "2" ]; then
             echo "✅ Changes detected, continuing..."
+            exit 0
           else
-            echo "❌ Unknown exit code: $exit_code"
+            echo "❌ Unknown exit code: $code"
             exit 1
           fi
 

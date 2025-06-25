@@ -76,15 +76,20 @@ jobs:
             exit 1
           fi
 
-      - name: Check for Destroys
+      - name: Check for Destroy Operations
         run: |
-          terraform show -json tfplan | jq -e '
-            .resource_changes[]? | select(.change.actions | index("delete"))
-          ' > deletions.json
+          if [ ! -f tfplan ]; then
+            echo "❌ tfplan file not found"
+            exit 1
+          fi
 
-          if [ -s deletions.json ]; then
-            echo "🚨 Destroy actions detected! Refusing to apply."
-            cat deletions.json
+          terraform show -json tfplan > tfplan.json
+
+          destroy_count=$(jq '[.resource_changes[]? | select(.change.actions | index("delete"))] | length' tfplan.json)
+
+          if [ "$destroy_count" -gt 0 ]; then
+            echo "🚨 Destroy actions detected: $destroy_count resource(s) will be deleted."
+            jq '[.resource_changes[] | select(.change.actions | index("delete"))]' tfplan.json
             exit 1
           else
             echo "✅ No delete actions detected."

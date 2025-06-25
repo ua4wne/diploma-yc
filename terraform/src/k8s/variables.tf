@@ -24,15 +24,14 @@ variable "vpc_name" {
 }
 
 variable "ssh_public_key" {
+  description = "Public SSH key for access"
   type        = string
-  default     = ""
-  description = "SSH public key"
 }
 
 variable "ssh_private_key" {
+  description = "Private SSH key for access"
   type        = string
-  default     = ""
-  description = "SSH private key"
+  sensitive   = true
 }
 
 variable "k8s_vm" {

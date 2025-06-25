@@ -38,6 +38,7 @@ terraform {
 
   backend "s3" {}
 }
+
 provider "yandex" {
   token     = var.token
   cloud_id  = var.cloud_id

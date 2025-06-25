@@ -102,6 +102,20 @@ jobs:
         id: bastion
         run: |
           echo "BASTION_IP=$(terraform output -raw bastion_ip)" >> $GITHUB_ENV
+      
+      - name: Wait for SSH on Bastion
+        run: |
+          echo "⏳ Waiting for SSH on bastion at $BASTION_IP ..."
+          for i in {1..12}; do
+            if nc -z "$BASTION_IP" 22; then
+              echo "✅ SSH is available!"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: SSH not yet available. Retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ SSH not available after 2 minutes. Exiting."
+          exit 1
 
       - name: Copy hosts.yaml to Bastion
         uses: appleboy/scp-action@v0.1.7

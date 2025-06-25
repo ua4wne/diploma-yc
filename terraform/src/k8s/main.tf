@@ -9,5 +9,5 @@ data "yandex_compute_image" "os" {
 }
 
 data "template_file" "cloudinit_bastion" {
-  template = file("${path.module}/cloudinit/cloudinit_bastion.yaml")
+  template = file("${path.module}/cloudinit/cloudinit-bastion.yaml")
 }

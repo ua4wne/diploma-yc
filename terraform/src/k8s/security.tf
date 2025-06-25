@@ -10,29 +10,36 @@ variable "security_group_ingress" {
       from_port      = optional(number)
       to_port        = optional(number)
   }))
-  # default = [
-  #   {
-  #     protocol       = "TCP"
-  #     description    = "разрешить входящий ssh"
-  #     v4_cidr_blocks = ["0.0.0.0/0"]
-  #     port           = 22
-  #   },
-  #   {
-  #     protocol       = "TCP"
-  #     description    = "для работы API k8s"
-  #     port           = 6443
-  #     v4_cidr_blocks = ["192.168.10.0/24", "192.168.20.0/24", "192.168.21.0/24"]
-  #   }
-  # ]
   default = [
     {
-      protocol       = "ANY"
-      description    = "разрешить весь входящий трафик"
+      protocol       = "TCP"
+      description    = "разрешить входящий ssh на бастион"
+      v4_cidr_blocks = ["10.0.1.0/24"]
+      port           = 22
+    },
+    {
+      protocol       = "TCP"
+      description    = "для работы API k8s"
+      port           = 6443
       v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      protocol       = "ANY"
+      description    = "весь внутренний трафик k8s"
       from_port      = 0
       to_port        = 65365
+      v4_cidr_blocks = ["10.0.1.0/24","10.0.2.0/24","10.0.3.0/24","10.0.4.0/24"]
     }
   ]
+  # default = [
+  #   {
+  #     protocol       = "ANY"
+  #     description    = "разрешить весь входящий трафик"
+  #     v4_cidr_blocks = ["0.0.0.0/0"]
+  #     from_port      = 0
+  #     to_port        = 65365
+  #   }
+  # ]
 }
 
 variable "security_group_egress" {

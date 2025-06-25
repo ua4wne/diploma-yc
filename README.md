@@ -316,6 +316,30 @@ kubectl -n diplom-site get svc -o wide
 
 1. Если на первом этапе вы не воспользовались [Terraform Cloud](https://app.terraform.io/), то задеплойте и настройте в кластере [atlantis](https://www.runatlantis.io/) для отслеживания изменений инфраструктуры. Альтернативный вариант 3 задания: вместо Terraform Cloud или atlantis настройте на автоматический запуск и применение конфигурации terraform из вашего git-репозитория в выбранной вами CI-CD системе при любом комите в main ветку. Предоставьте скриншоты работы пайплайна из CI/CD системы.
 
+>Для автоматического запуска и применения конфигурации terraform из нашего git-репозитория настроим Github Actions. Создаю папки .github/workflows и в них три файла:
+
+[terraform-debug.yml](./.github/workflows/terraform-debug.yml) - нужен для первоначальной отладки работы пайплайна
+
+[terraform.yml](./.github/workflows/terraform.yml) - пайплайн для применения изменений в конфигурации terraform (terraform apply)
+
+[terraform-destroy.yml](./.github/workflows/terraform-destroy.yml) - пайплайн для удаления конфигурации terraform, только ручной запуск с подтверждением (terraform destroy)
+
+>Также внес ряд изменений в файлы:
+
+[providers.tf](./terraform/src/k8s/providers.tf) - переписал под корректную работу через Github Actions
+
+[bastion.tf](./terraform/src/k8s/bastion.tf) - убрал provisioner и сделал установку необходимого для установки ПО при помощи [cloudinit-bastion.yaml](./terraform/src/k8s/cloudinit/cloudinit_bastion.yaml).
+
+[main.tf](./terraform/src/k8s/main.tf) - добавил блок для работы cloudinit
+
+```
+data "template_file" "cloudinit_bastion" {
+  template = file("${path.module}/cloudinit/cloudinit-bastion.yaml")
+}
+```
+
+После небольшого траблшутинга пайплайн заработал, код terraform стал запускаться при пуше изменений в репозиторий.
+
 Ожидаемый результат:
 1. Git репозиторий с конфигурационными файлами для настройки Kubernetes.
 2. Http доступ на 80 порту к web интерфейсу grafana.
@@ -329,6 +353,9 @@ kubectl -n diplom-site get svc -o wide
 
 5. Atlantis или terraform cloud или ci/cd-terraform
 
+![tf_secrets.png](./terraform/src/k8s/images/ci-cd/tf_secrets.png)
+![tf_actions.tf](./terraform/src/k8s/images/ci-cd/tf_actions.png)
+
 ---
 ### Установка и настройка CI/CD
 
@@ -341,11 +368,21 @@ kubectl -n diplom-site get svc -o wide
 
 Можно использовать [teamcity](https://www.jetbrains.com/ru-ru/teamcity/), [jenkins](https://www.jenkins.io/), [GitLab CI](https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/) или GitHub Actions.
 
+>Для сборки и деплоя приложения также использую GitHub Actions. Для этого в [репозитории](https://github.com/ua4wne/simple-site) создаю структуру папок .github/workflows и в них файл [deploy.yml](https://github.com/ua4wne/simple-site/blob/main/.github/workflows/deploy.yml). После небольшого траблшутинга пайплайн сборки и деплоя также заработал.
+
+![secrets.png](./terraform/src/k8s/images/ci-cd/secrets.png)
+![actions.php](./terraform/src/k8s/images/ci-cd/actions.png)
+
 Ожидаемый результат:
 
 1. Интерфейс ci/cd сервиса доступен по http.
 2. При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
+
+![edit_html.png](./terraform/src/k8s/images/ci-cd/edit_html.png)
+
 3. При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистри, а также деплой соответствующего Docker образа в кластер Kubernetes.
+
+![new_version.png](./terraform/src/k8s/images/ci-cd/new_version.png)
 
 ---
 ## Что необходимо для сдачи задания?

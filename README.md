@@ -128,17 +128,12 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
     ]
   }
 
-  # --- Клонирование Kubespray и установка зависимостей ---
+  # --- Клонирование Kubespray ---
   provisioner "remote-exec" {
     inline = [
       "cd /home/${var.vm_user}",
       "git clone -b release-2.26 https://github.com/kubernetes-incubator/kubespray.git", 
       "echo 'Kubespray успешно склонирован'",
-      "cd kubespray/",
-      "python3 -m venv venv",
-      "source venv/bin/activate",
-      "pip install -r requirements.txt",
-      "echo 'Ansible и зависимости Kubespray установлены'"
     ]
   }
   ```
@@ -172,6 +167,10 @@ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_
 
   ```
   ssh -i ~/.ssh/id_ed25519 -J ubuntu@46.21.246.170 ubuntu@10.0.2.28
+  mkdir ~/.kube
+  sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+  sudo chown -R ubuntu:ubuntu ~/.kube/config
+  kubectl get pods --all-namespaces
   ```
 
 Ожидаемый результат:
@@ -302,7 +301,7 @@ kubectl -n diplom-site get svc -o wide
 
 ![site.png](./terraform/src/k8s/images/deployment/site.png)
 
->Поскольку в [манифесте](./terraform/src/k8s/deploy/deploy.yaml) Deployments я указал три реплики приложения, для обеспечения его отказоустойчивости потребуется балансировщик нагрузки.
+>Поскольку в [манифесте](./terraform/src/k8s/deploy/deploy.yaml) Deployments я указал две реплики приложения, для обеспечения его отказоустойчивости потребуется балансировщик нагрузки.
 >Кроме этого для доступа к Grafana из-вне тоже потребуется такой же балансировщик. Создадим его при помощи [кода terraform](./terraform/src/k8s/lb.tf)
 
 ![lb-apply.png](./terraform/src/k8s/images/deployment/lb-apply.png)
